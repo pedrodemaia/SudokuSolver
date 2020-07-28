@@ -30,24 +30,20 @@ def getSolution(problem):
     s = int(np.sqrt(n))
     
     model = gp.Model('Sudoku')
+    model.setParam('OutputFlag', False)
     
-    # create 9 binary variables for each cell
+    # create 9 binary variables for each cell without given value
     var = gp.tupledict()
     for i in range(n):
         for j in range(n):
-            if problem[i,j] > 0:
-                # set LB to 1 for vrialbes with a given value
-                k = problem[i,j] - 1
-                var[(i,j,k)] = model.addVar(1, 1, 0, GRB.BINARY, 
-                                            name='v[{},{},{}]'.format(i,j,k))
-            else:
+            if problem[i,j] == 0:
                 for k in range(n):
                     var[(i,j,k)] = model.addVar(0, 1, 0, GRB.BINARY, 
                                             name='v[{},{},{}]'.format(i,j,k))
     
     # Assert each cell assumes one value
     model.addConstrs((var.sum(i, j, '*') == 1
-    for i in range(n) for j in range(n)), name = 'cell')
+    for i in range(n) for j in range(n) if problem[i,j] == 0), name = 'cell')
     
     # Assert there are no duplicate values in a row
     model.addConstrs((var.sum(i, '*', k) == 1
@@ -74,13 +70,16 @@ def getSolution(problem):
     # optimize model
     model.optimize()
     
-    # get solution
-    sol = model.getAttr('X', var)
-    solution = np.empty([n,n], dtype='int')
-    for key, val in sol.items():
-        if val > 0.5:
-            solution[key[0],key[1]] = int(key[2]+1)
-    
+    if model.Status == GRB.OPTIMAL:
+        # get solution
+        sol = model.getAttr('X', var)
+        solution = problem.copy()
+        for key, val in sol.items():
+            if val > 0.5:
+                solution[key[0],key[1]] = int(key[2]+1)
+    else:
+        solution = np.zeros([n,n], dtype = 'int')
+      
     return model, solution
 
 def printSolution(solution):
@@ -94,62 +93,14 @@ def writeLP(model):
     
     
 if __name__ == '__main__':
-    name = 's01a'
+    name = 's16'
     n = 9
     problem = readInstance(name, n)
     
     model, solution = getSolution(problem)
     
-    writeLP(model)
+    #writeLP(model)
     
     printSolution(solution)
-    
-# =============================================================================
-#     model = gp.Model('Sudoku')
-#     vars = model.addVars(n, n, n, vtype=GRB.BINARY, name='value')
-#     # Fix variables associated with cells whose values are pre - specified
-#     for i in range(n):
-#         for j in range(n):
-#             if problem[i][j] > 0:
-#                 val = problem[i][j] - 1
-#                 vars[i, j, val].LB = 1
-#     
-#     # Each cell must take one value
-#     model.addConstrs((vars.sum(i, j, '*') == 1
-#     for i in range(n) for j in range(n)), name = 'cell')
-#     
-#     # Each value appears once per row
-#     model.addConstrs((vars.sum(i, '*', v) == 1
-#     for i in range(n) for v in range(n)), name = 'row')
-#     
-#     # Each value appears once per column
-#     model.addConstrs((vars.sum('*', j, v) == 1
-#     for j in range(n) for v in range(n)), name ='column')
-#     
-#     # Each value appears once per subgrid
-#     model.addConstrs((
-#     gp.quicksum(vars[i, j, v] for i in range(i0*s, (i0+1)*s)
-#     for j in range(j0*s, (j0+1)*s)) == 1
-#     for v in range(n)
-#     for i0 in range(s)
-#     for j0 in range(s)), name = 'Sub')
-#     
-#     model.optimize()
-#     model.write('sudoku.lp')
-#     print ('')
-#     print ('Solution:')
-#     print ('')
-#     
-#     # get result
-#     solution = model.getAttr('X', vars)
-#     sol = np.empty([n,n], dtype='int')
-#     for i in range(n):
-#         for j in range(n):
-#             for v in range(n):
-#                 if solution[i, j, v] > 0.5:
-#                     sol[i,j] = int(v+1)
-#     
-#     print(sol)
-# =============================================================================
     
     
