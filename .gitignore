@@ -1,8 +1,2 @@
-
-.spyproject/config/backups/codestyle.ini.bak
-.spyproject/config/backups/encoding.ini.bak
-.spyproject/config/backups/vcs.ini.bak
-.spyproject/config/backups/workspace.ini.bak
+.spyproject/
 gurobi.log
-.spyproject/config/workspace.ini
-.spyproject/config/workspace.ini
