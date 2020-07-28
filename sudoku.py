@@ -3,12 +3,6 @@
 Created on Thu Jul 23 15:44:49 2020
 
 @author: pedro
-
-Idea: https://www.reddit.com/r/OperationsResearch/comments/hw9kiw/solve_sudoku_using_simulated_annealing_heuristic/
-Instances: http://lipas.uwasa.fi/~timan/sudoku/
-
-USE SOS
-use default optimizer from python
 """
 
 import numpy as np
